@@ -9,3 +9,4 @@ psycopg2-binary==2.9.12
 scikit-learn==1.9.0
 torch==2.13.0+cpu
 sentence-transformers==5.6.1
+fastembed

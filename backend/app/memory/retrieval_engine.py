@@ -158,10 +158,11 @@ def update_recall_state(
 
 
 def retrieve_memories(
-    query: str,
-    memories: list[Memory],
+    query,
+    memories,
     emotion_store=None,
-    top_k: int = 5,
+    top_k=5,
+    query_embedding=None,
 ):
     """
     Retrieve the most relevant memories.
@@ -188,9 +189,8 @@ def retrieve_memories(
     Dormant memories remain retrievable with a penalty.
     """
 
-    query_embedding = generate_embedding(
-        query
-    )
+    if query_embedding is None:
+    query_embedding = generate_embedding(query)
 
     results = []
 

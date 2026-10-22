@@ -4,6 +4,22 @@ All notable changes to the **Human-Like-Memory AI Model** project are documented
 
 ---
 
+## v2.1.1 - Stability and isolation fixes
+
+### Fixed
+- Per-user isolation: relationship building, graph rebuild and adaptive forgetting no longer touch other users' memories
+- Memory extractor now accepts JSON wrapped in markdown code fences or extra text, and tolerates empty (`None`) model output
+- Groq client returns an empty string instead of `None` when the model returns no content
+- `/chat` returns a clean HTTP 500 and logs the traceback instead of crashing; empty `user_id`/`message` are rejected
+- CORS origins can be extended through the `CORS_ORIGINS` environment variable
+- Frontend header shows the real backend status (checking / ready / offline)
+- Stale tests updated to the current API (`decision_engine`, `graph_retriever`, `reasoning_manager`, `reflection_engine`)
+
+### Added
+- `.env.example`, expanded `README.md`, `backend/__init__.py`
+
+---
+
 ## v2.1.0 – Emotion-Aware Dream Replay
 
 ### Added

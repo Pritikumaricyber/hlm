@@ -215,6 +215,10 @@ class MemoryManager:
 
             for memory_b in memories[index + 1:]:
 
+                # Never link memories that belong to different users.
+                if memory_a.user_id != memory_b.user_id:
+                    continue
+
                 relationship_type, strength = detect_relationship(
                     memory_a,
                     memory_b,
@@ -593,6 +597,10 @@ class MemoryManager:
             if existing_memory.id == new_memory.id:
                 continue
 
+            # Memories of other users must never be linked together.
+            if existing_memory.user_id != new_memory.user_id:
+                continue
+
             if existing_memory.status == "forgotten":
                 continue
 
@@ -745,6 +753,12 @@ class MemoryManager:
         # =====================================================
 
         for memory in self.memory_store.get_all():
+
+            # Only decay/forget the memories of the user who is
+            # currently talking. Other users' memories must not
+            # change because someone else sent a message.
+            if memory.user_id != new_memory.user_id:
+                continue
 
             # Protect the newly learned memory from being
             # forgotten in the same processing cycle.

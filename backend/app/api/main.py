@@ -1,4 +1,7 @@
-from fastapi import FastAPI
+import logging
+import os
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api.schemas import (
     ChatRequest,
@@ -9,7 +12,26 @@ from backend.app.api.schemas import (
 from backend.app.llm.groq_provider import GroqProvider
 from backend.app.memory.memory_manager import MemoryManager
 from backend.app.llm.conversation_engine import ConversationEngine
+from backend.app.memory.behavioral_profile_builder import (
+    build_behavioral_profile,
+)
 from backend.app.storage.postgres.schema import create_tables
+
+logger = logging.getLogger(__name__)
+
+# Extra allowed browser origins can be supplied without editing code,
+# e.g. CORS_ORIGINS="https://my-site.com,https://other.com"
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://human-memory-frontend.onrender.com",
+]
+
+EXTRA_CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 
 app = FastAPI(
@@ -20,11 +42,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://human-memory-frontend.onrender.com",
-    ],
+    allow_origins=DEFAULT_CORS_ORIGINS + EXTRA_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,14 +79,25 @@ def health():
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    response = conversation_engine.respond(
-        user_id=request.user_id,
-        message=request.message,
-    )
+    try:
+        response = conversation_engine.respond(
+            user_id=request.user_id,
+            message=request.message,
+        )
+    except Exception:
+        # Log the full traceback on the server, but return a clean
+        # error to the client instead of an unhandled crash.
+        logger.exception("Chat request failed")
+        raise HTTPException(
+            status_code=500,
+            detail="The memory system could not process this message.",
+        )
 
     return ChatResponse(
         response=response,
     )
+
+
 @app.get(
     "/memory-state/{user_id}",
     response_model=MemoryStateResponse,
@@ -99,6 +128,7 @@ def memory_state(user_id: str):
         ],
     )
 
+
 @app.get(
     "/behavioral-profile/{user_id}",
     response_model=BehavioralProfileResponse,
@@ -126,11 +156,6 @@ def behavioral_profile(user_id: str):
                 concept,
                 user_id=user_id,
             )
-        )
-
-        profile = memory_manager.behavioral_accumulator
-        from backend.app.memory.behavioral_profile_builder import (
-            build_behavioral_profile,
         )
 
         built_profile = build_behavioral_profile(

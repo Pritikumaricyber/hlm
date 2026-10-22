@@ -40,7 +40,7 @@ episodes = [
     }
 ]
 
-beliefs = reflect(episodes)
+beliefs = reflect([item["memory"] for item in episodes])
 
 print("\nREFLECTION ENGINE\n")
 

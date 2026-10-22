@@ -52,25 +52,25 @@ print("\n------------------------------")
 print("SUPPORTING EVIDENCE")
 print("------------------------------")
 
-updated = manager.process_reasoning(
+result = manager.process_reasoning(
     belief,
     supporting_memory,
 )
 
-print("Belief     :", updated.belief)
-print("Confidence :", updated.confidence)
-print("State      :", updated.state)
+print("Action     :", result["action"])
+print("Confidence :", result["new_confidence"])
+print("State      :", result["state"])
 
 
 print("\n------------------------------")
 print("CONFLICTING EVIDENCE")
 print("------------------------------")
 
-updated = manager.process_reasoning(
-    updated,
+result = manager.process_reasoning(
+    belief,
     conflicting_memory,
 )
 
-print("Belief     :", updated.belief)
-print("Confidence :", updated.confidence)
-print("State      :", updated.state)
+print("Action     :", result["action"])
+print("Confidence :", result["new_confidence"])
+print("State      :", result["state"])

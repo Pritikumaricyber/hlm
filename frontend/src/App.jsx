@@ -25,6 +25,18 @@ function App() {
     "System ready",
   ]);
 
+  // null = checking, true = online, false = offline
+  const [backendOnline, setBackendOnline] = useState(null);
+
+  const checkBackend = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`);
+      setBackendOnline(response.ok);
+    } catch {
+      setBackendOnline(false);
+    }
+  };
+
   const loadMemories = async () => {
     try {
       const response = await fetch(
@@ -68,6 +80,7 @@ function App() {
   useEffect(() => {
     const initializeDashboard = async () => {
       await Promise.all([
+        checkBackend(),
         loadMemories(),
         loadBehavioralProfile(),
       ]);
@@ -114,6 +127,7 @@ function App() {
       }
 
       const data = await response.json();
+      setBackendOnline(true);
       setSystemActivity([
         "Memory retrieved",
         "Behavioral profile checked",
@@ -132,6 +146,7 @@ function App() {
       await loadBehavioralProfile();
     } catch (error) {
       console.error(error);
+      setBackendOnline(false);
       setSystemActivity([
         "Backend connection failed",
       ]);
@@ -165,8 +180,16 @@ function App() {
         </div>
 
         <div className="status">
-          <span className="status-dot"></span>
-          Backend Ready
+          <span
+            className={`status-dot ${
+              backendOnline === false ? "offline" : ""
+            }`}
+          ></span>
+          {backendOnline === null
+            ? "Checking backend..."
+            : backendOnline
+            ? "Backend Ready"
+            : "Backend Offline"}
         </div>
       </header>
 

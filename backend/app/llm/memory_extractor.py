@@ -1,4 +1,5 @@
 import json
+import re
 
 from backend.app.llm.llm_interface import LLMInterface
 
@@ -289,6 +290,50 @@ Do not include additional fields.
         return self._parse_response(response)
 
     @staticmethod
+    def _load_json(
+        response,
+    ):
+        """
+        Leniently load a JSON object from an LLM response.
+
+        LLMs frequently wrap JSON in markdown code fences or add a
+        short sentence before/after it, even when told not to.
+        Returns None when no JSON object can be recovered.
+        """
+
+        if not isinstance(response, str):
+            return None
+
+        text = response.strip()
+
+        # ```json ... ``` or ``` ... ```
+        fenced = re.match(
+            r"^```(?:json)?\s*(.*?)\s*```$",
+            text,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+
+        if fenced:
+            text = fenced.group(1).strip()
+
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+
+        # Fall back to the first {...} block in the text.
+        start = text.find("{")
+        end = text.rfind("}")
+
+        if start != -1 and end > start:
+            try:
+                return json.loads(text[start:end + 1])
+            except json.JSONDecodeError:
+                return None
+
+        return None
+
+    @staticmethod
     def _parse_response(
         response: str,
     ) -> dict:
@@ -296,10 +341,9 @@ Do not include additional fields.
         Parse and validate the LLM JSON response.
         """
 
-        try:
-            data = json.loads(response)
+        data = MemoryExtractor._load_json(response)
 
-        except json.JSONDecodeError:
+        if not isinstance(data, dict):
 
             return {
                 "should_remember": False,

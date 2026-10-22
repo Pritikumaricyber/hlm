@@ -63,6 +63,10 @@ textarea {
   background: #22c55e;
 }
 
+.status-dot.offline {
+  background: #ef4444;
+}
+
 /* ---------- Main dashboard ---------- */
 
 .dashboard {

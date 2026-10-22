@@ -74,5 +74,5 @@ print("\n==============================")
 print("GRAPH RETRIEVAL")
 print("==============================")
 
-for memory in related:
-    print(memory.content)
+for item in related:
+    print(item["memory"].content)

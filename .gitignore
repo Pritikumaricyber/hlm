@@ -6,3 +6,12 @@ __pycache__/
 *.backup
 *.bak
 *_backup.py
+
+# Environment (keep the template, ignore real secrets)
+.env.*
+!.env.example
+
+# Build / tooling output
+node_modules/
+frontend/dist/
+structure*.txt

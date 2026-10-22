@@ -1,5 +1,6 @@
 from backend.app.models.memory import Memory
-from backend.app.memory.decision_engine import decide_memory_action
+from backend.app.memory.consolidation_engine import consolidate_memory
+from backend.app.memory.decision_engine import make_memory_decision
 
 old_memories = [
 
@@ -34,14 +35,26 @@ new_memory = Memory(
     emotional_score=0.2,
 )
 
-decision = decide_memory_action(
+consolidation = consolidate_memory(
     new_memory,
-    old_memories
+    old_memories,
+)
+
+decision = make_memory_decision(
+    consolidation
 )
 
 print("\nMEMORY DECISION\n")
 
 print("Action       :", decision["action"])
 print("Relationship :", decision["relationship"])
-print("Target       :", decision["target"].content)
-print("Independence :", round(decision["independence"], 4))
+print(
+    "Target       :",
+    decision["target"].content if decision["target"] else None,
+)
+print(
+    "Independence :",
+    round(decision["independence"], 4)
+    if decision["independence"] is not None
+    else None,
+)

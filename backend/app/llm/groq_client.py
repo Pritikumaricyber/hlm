@@ -42,4 +42,8 @@ class GroqClient:
             temperature=temperature,
         )
 
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+
+        # Some models (e.g. reasoning models) can return no text
+        # content. Always hand a string back to the callers.
+        return content or ""

@@ -1,3 +1,4 @@
+
 import numpy as np
 from datetime import datetime
 
@@ -50,16 +51,13 @@ def calculate_retrieval_score(
     emotion_bonus = 0.0
 
     if emotion is not None:
-
         emotion_bonus = (
             emotion.intensity * 0.04
             + abs(emotion.valence) * 0.03
             + emotion.arousal * 0.03
         )
 
-    # ---------------------------------------------------------
     # BASE RETRIEVAL SCORE
-    # ---------------------------------------------------------
 
     score = (
         semantic_similarity * 0.45
@@ -69,26 +67,12 @@ def calculate_retrieval_score(
         + emotion_bonus
     )
 
-    # ---------------------------------------------------------
     # MEMORY LIFECYCLE EFFECT
-    # ---------------------------------------------------------
-    #
-    # Active:
-    #   normal retrieval
-    #
-    # Dormant:
-    #   still retrievable, but weaker
-    #
-    # Forgotten:
-    #   handled separately and normally excluded
-    #
 
     if memory.status == "dormant":
-
         score *= 0.70
 
     elif memory.status == "forgotten":
-
         score *= 0.10
 
     return round(
@@ -111,21 +95,15 @@ def update_recall_state(
     - can reactivate a dormant memory
     """
 
-    # ---------------------------------------------------------
     # 1. INCREASE RECALL COUNT
-    # ---------------------------------------------------------
 
     memory.recall_count += 1
 
-    # ---------------------------------------------------------
     # 2. UPDATE LAST RECALL TIME
-    # ---------------------------------------------------------
 
     memory.last_recalled = datetime.now()
 
-    # ---------------------------------------------------------
     # 3. STRENGTHEN MEMORY
-    # ---------------------------------------------------------
 
     recall_strength_bonus = 0.05
 
@@ -134,26 +112,9 @@ def update_recall_state(
         memory.strength + recall_strength_bonus,
     )
 
-    # ---------------------------------------------------------
     # 4. REACTIVATE DORMANT MEMORY
-    # ---------------------------------------------------------
-    #
-    # If a dormant memory is successfully recalled,
-    # it becomes active again.
-    #
-    # This creates the human-like behaviour:
-    #
-    # dormant memory
-    #       ↓
-    # recalled
-    #       ↓
-    # strengthened
-    #       ↓
-    # active
-    #
 
     if memory.status == "dormant":
-
         memory.status = "active"
 
 
@@ -189,79 +150,63 @@ def retrieve_memories(
     Dormant memories remain retrievable with a penalty.
     """
 
+    # Reuse a supplied query embedding when available.
+    # Otherwise, generate one for backward compatibility.
+
     if query_embedding is None:
-    query_embedding = generate_embedding(query)
+        query_embedding = generate_embedding(query)
 
     results = []
 
-    # =========================================================
     # 1. CALCULATE RETRIEVAL SCORES
-    # =========================================================
 
     for memory in memories:
 
-        # -----------------------------------------------------
         # FORGOTTEN MEMORIES
-        # -----------------------------------------------------
-        #
-        # Forgotten memories should not normally appear
-        # during ordinary retrieval.
-        #
 
         if memory.status == "forgotten":
-
             continue
 
-        # -----------------------------------------------------
-        # Generate memory embedding if necessary
-        # -----------------------------------------------------
+        # GENERATE MEMORY EMBEDDING IF NECESSARY
 
         if memory.embedding is None:
-
             memory.embedding = generate_embedding(
                 memory.content
             )
 
-        # -----------------------------------------------------
-        # Semantic similarity
-        # -----------------------------------------------------
+        # SEMANTIC SIMILARITY
 
         similarity = cosine_similarity(
             query_embedding,
             memory.embedding,
         )
 
-        # -----------------------------------------------------
-        # Emotional relevance
-        # -----------------------------------------------------
+        # EMOTIONAL RELEVANCE
 
         emotion = None
 
         if emotion_store is not None:
-
             emotions = emotion_store.get_by_memory(
                 memory.id
             )
 
             if emotions:
-
                 emotion = emotions[-1]
 
-        # -----------------------------------------------------
-        # Final retrieval score
-        # -----------------------------------------------------
+        # FINAL RETRIEVAL SCORE
 
         score = calculate_retrieval_score(
             similarity,
             memory,
             emotion,
         )
+
         print(
             f"[RETRIEVAL] {memory.content} "
             f"| similarity={similarity:.4f} "
             f"| score={score:.4f} "
             f"| status={memory.status}"
-            )
+        )
 
         results.append(
             {
@@ -274,26 +219,14 @@ def retrieve_memories(
             }
         )
 
-    # =========================================================
     # 2. SORT BY RETRIEVAL SCORE
-    # =========================================================
 
     results.sort(
         key=lambda item: item["retrieval_score"],
         reverse=True,
-        )
+    )
 
-    # =========================================================
     # 3. RELEVANCE FILTER
-    # =========================================================
-    #
-    # Only memories with sufficient retrieval relevance
-    # should reach the conversation context.
-    #
-    # Dormant memories are still allowed if they are
-    # genuinely relevant. Forgotten memories were already
-    # excluded above.
-    #
 
     MIN_RELEVANCE_SCORE = 0.43
 
@@ -301,23 +234,17 @@ def retrieve_memories(
         item
         for item in results
         if item["retrieval_score"] >= MIN_RELEVANCE_SCORE
-        ]
+    ]
 
-    # =========================================================
     # 4. SELECT TOP MEMORIES
-    # =========================================================
 
     retrieved_results = relevant_results[:top_k]
-    # =========================================================
-    # 4. UPDATE RECALL STATE
-    # =========================================================
+
+    # 5. UPDATE RECALL STATE
 
     for item in retrieved_results:
-
         memory = item["memory"]
 
-        update_recall_state(
-            memory
-        )
+        update_recall_state(memory)
 
     return retrieved_results

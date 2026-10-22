@@ -10,6 +10,7 @@ def retrieve_related_memories(
     memories: list[Memory],
     start_subject: str,
     max_depth: int = 2,
+    query_embedding=None,
 ) -> list[dict]:
     """
     Retrieve memories connected through the relationship graph.
@@ -43,6 +44,7 @@ def retrieve_related_memories(
     # STEP 1 : FIND SEMANTICALLY RELEVANT GRAPH START NODE
     # =========================================================
 
+    if query_embedding is None:
     query_embedding = generate_embedding(
         start_subject
     )

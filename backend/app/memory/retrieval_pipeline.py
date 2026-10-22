@@ -5,7 +5,7 @@ from backend.app.memory.retrieval_engine import (
 from backend.app.graph.graph_retriever import (
     retrieve_related_memories,
 )
-
+from backend.app.embeddings.embedder import generate_embedding
 
 def calculate_graph_retrieval_score(
     memory,
@@ -109,6 +109,7 @@ def run_retrieval_pipeline(
         for memory in memories
         if memory.status != "forgotten"
     ]
+        query_embedding = generate_embedding(query)
 
     # =========================================================
     # STEP 1 : VECTOR RETRIEVAL
@@ -118,6 +119,7 @@ def run_retrieval_pipeline(
         query=query,
         memories=retrievable_memories,
         emotion_store=None,
+        query_embedding=query_embedding,
     )
 
     # =========================================================
@@ -129,6 +131,7 @@ def run_retrieval_pipeline(
         memories=retrievable_memories,
         start_subject=query,
         max_depth=2,
+         query_embedding=query_embedding,
     )
 
     # =========================================================

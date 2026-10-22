@@ -109,7 +109,7 @@ def run_retrieval_pipeline(
         for memory in memories
         if memory.status != "forgotten"
     ]
-        query_embedding = generate_embedding(query)
+    query_embedding = generate_embedding(query)
 
     # =========================================================
     # STEP 1 : VECTOR RETRIEVAL

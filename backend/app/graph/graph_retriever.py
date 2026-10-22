@@ -1,3 +1,4 @@
+
 from backend.app.graph.belief_graph import BeliefGraph
 from backend.app.graph.graph_traversal import traverse_graph
 from backend.app.models.memory import Memory
@@ -45,9 +46,9 @@ def retrieve_related_memories(
     # =========================================================
 
     if query_embedding is None:
-    query_embedding = generate_embedding(
-        start_subject
-    )
+        query_embedding = generate_embedding(
+            start_subject
+        )
 
     best_memory = None
     best_similarity = 0.0
@@ -65,7 +66,6 @@ def retrieve_related_memories(
         )
 
         if similarity > best_similarity:
-
             best_similarity = similarity
             best_memory = memory
 
@@ -105,7 +105,6 @@ def retrieve_related_memories(
         for lowercase_subject in connected_lookup:
 
             if lowercase_subject in text:
-
                 matched_subject = lowercase_subject
                 break
 
@@ -134,16 +133,13 @@ def retrieve_related_memories(
                     lowercase_node in text
                     or target_lower in text
                 ):
-
                     strength = edge.get(
                         "strength",
                         0.0,
                     )
 
                     if strength > relationship_strength:
-
                         relationship_strength = strength
-
                         relationship_type = edge.get(
                             "relationship",
                             "related",
@@ -156,9 +152,7 @@ def retrieve_related_memories(
         related.append(
             {
                 "memory": memory,
-                "relationship_strength": (
-                    relationship_strength
-                ),
+                "relationship_strength": relationship_strength,
                 "relationship": relationship_type,
             }
         )
